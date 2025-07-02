@@ -1,0 +1,25 @@
+name: TypeScript CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mise
+        uses: jdx/mise-action@v2
+        with:
+          install: true
+      
+      - name: Install dependencies
+        run: make install-dev
+
+      - name: Lint, format check, and tests
+        run: make ci
