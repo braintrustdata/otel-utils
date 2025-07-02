@@ -25,14 +25,14 @@ export type CustomSpanFilter = (span: ReadableSpan) => boolean | null | undefine
  */
 export class LLMSpanProcessor implements SpanProcessor {
   private readonly processor: SpanProcessor;
-  private readonly customFilter?: CustomSpanFilter;
+  private readonly customFilter: CustomSpanFilter | undefined;
 
   /**
    * Initialize the LLM span processor.
    *
    * @param processor - The wrapped span processor that will receive filtered spans
    * @param customFilter - Optional function that takes a span and returns:
-   *                      true to definitely keep, false to definitely drop,
+   *                      true to keep, false to drop,
    *                      null/undefined to not influence the decision
    */
   constructor(processor: SpanProcessor, customFilter?: CustomSpanFilter) {

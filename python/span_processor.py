@@ -21,7 +21,7 @@ class LLMSpanProcessor:
         Args:
             processor: The wrapped span processor that will receive filtered spans
             custom_filter: Optional callable that takes a span and returns:
-                          True to definitely keep, False to definitely drop,
+                          True to keep, False to drop,
                           None to not influence the decision
         """
         self._processor = processor
