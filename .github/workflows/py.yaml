@@ -18,5 +18,8 @@ jobs:
         with:
           install: true # install our dependencies
 
+      - name: Install dependencies
+        run: make install-dev
+
       - name: Lint, format check, and tests
         run: make ci
