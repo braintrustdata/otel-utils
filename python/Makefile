@@ -12,10 +12,10 @@ help:
 	@echo "  help         - Show this help message"
 
 install-dev:
-	uv pip install -e ".[test]"
+	pip install -e ".[test]"
 
 test:
-	pytest
+	python -m pytest
 
 clean:
 	rm -rf build/
@@ -25,12 +25,12 @@ clean:
 	find . -type d -name "__pycache__" -delete
 
 lint:
-	ruff check .
+	python -m ruff check .
 
 fmt:
-	ruff format .
+	python -m ruff format .
 
 fmt-check:
-	ruff format --check --diff .
+	python -m ruff format --check --diff .
 
 ci: lint fmt-check test
