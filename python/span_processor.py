@@ -4,7 +4,7 @@ from opentelemetry.sdk.trace.export import SpanProcessor
 LLM_PREFIXES = ("gen_ai.", "braintrust.", "llm.", "ai")
 
 
-class FilteringSpanProcessor(SpanProcessor):
+class LLMSpanProcessor(SpanProcessor):
     """
     A span processor that filters spans based on a provided filter function.
 
