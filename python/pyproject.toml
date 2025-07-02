@@ -16,6 +16,8 @@ dependencies = []
 test = [
     "pytest>=7.0",
     "ruff>=0.1.0",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
 ]
 
 [tool.setuptools]
