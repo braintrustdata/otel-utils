@@ -1,7 +1,7 @@
 import { Context } from '@opentelemetry/api';
 import { SpanProcessor, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base';
 
-const LLM_PREFIXES = ['gen_ai.', 'braintrust.', 'llm.', 'ai'] as const;
+const LLM_PREFIXES = ['gen_ai.', 'braintrust.', 'llm.', 'ai.'] as const;
 
 /**
  * Custom filter function type for span filtering.
@@ -76,7 +76,7 @@ export class LLMSpanProcessor implements SpanProcessor {
    * Keep spans if:
    * 1. It's a root span (no parent)
    * 2. Custom filter returns true/false (if provided)
-   * 3. Span name starts with 'gen_ai.', 'braintrust.', 'llm.', or 'ai'
+   * 3. Span name starts with 'gen_ai.', 'braintrust.', 'llm.', or 'ai.'
    * 4. Any attribute name starts with those prefixes
    */
   private shouldKeepLlmSpan(span: ReadableSpan): boolean {

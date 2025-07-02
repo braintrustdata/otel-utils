@@ -74,14 +74,14 @@ class TestLLMSpanFiltering:
         assert "llm.generate" in span_names
 
     def test_keeps_ai_spans(self):
-        """Spans starting with 'ai' should be kept."""
+        """Spans starting with 'ai.' should be kept."""
         with self.tracer.start_as_current_span("root"):
-            with self.tracer.start_as_current_span("ai_model_call"):
+            with self.tracer.start_as_current_span("ai.model_call"):
                 pass
 
         spans = self.memory_exporter.get_finished_spans()
         span_names = [span.name for span in spans]
-        assert "ai_model_call" in span_names
+        assert "ai.model_call" in span_names
 
     def test_keeps_spans_with_llm_attributes(self):
         """Spans with LLM-related attribute names should be kept."""

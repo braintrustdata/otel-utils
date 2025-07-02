@@ -58,7 +58,7 @@ llm_processor = LLMSpanProcessor(batch_processor, custom_filter=my_custom_filter
 **Kept:**
 - Root spans (preserves trace structure)
 - Spans kept by custom filter (if provided)
-- Spans with names starting with: `gen_ai.`, `braintrust.`, `llm.`, `ai`
+- Spans with names starting with: `gen_ai.`, `braintrust.`, `llm.`, `ai.`
 - Spans with attribute names starting with those prefixes
 
 **Dropped:**

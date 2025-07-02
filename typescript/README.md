@@ -57,7 +57,7 @@ const llmProcessor = new LLMSpanProcessor(batchProcessor, myCustomFilter);
 
 **Kept:**
 - Root spans (preserves trace structure)
-- Spans with names starting with: `gen_ai.`, `braintrust.`, `llm.`, `ai`
+- Spans with names starting with: `gen_ai.`, `braintrust.`, `llm.`, `ai.`
 - Spans with attribute names starting with those prefixes
 
 **Dropped:**

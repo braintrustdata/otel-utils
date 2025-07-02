@@ -98,7 +98,7 @@ describe('LLMSpanProcessor', () => {
     const genAiSpan = tracer.startSpan('gen_ai.completion', {}, parentContext);
     const braintrustSpan = tracer.startSpan('braintrust.eval', {}, parentContext);
     const llmSpan = tracer.startSpan('llm.generate', {}, parentContext);
-    const aiSpan = tracer.startSpan('ai_model_call', {}, parentContext);
+    const aiSpan = tracer.startSpan('ai.model_call', {}, parentContext);
     const regularSpan = tracer.startSpan('database_query', {}, parentContext);
 
     genAiSpan.end();
@@ -115,7 +115,7 @@ describe('LLMSpanProcessor', () => {
     expect(spanNames).toContain('gen_ai.completion');
     expect(spanNames).toContain('braintrust.eval');
     expect(spanNames).toContain('llm.generate');
-    expect(spanNames).toContain('ai_model_call');
+    expect(spanNames).toContain('ai.model_call');
     expect(spanNames).not.toContain('database_query');
   });
 
@@ -133,7 +133,7 @@ describe('LLMSpanProcessor', () => {
     llmAttrSpan.setAttributes({ 'llm.tokens': 100 });
 
     const aiAttrSpan = tracer.startSpan('ai_attr_operation', {}, parentContext);
-    aiAttrSpan.setAttributes({ ai_temperature: 0.7 });
+    aiAttrSpan.setAttributes({ 'ai.temperature': 0.7 });
 
     const regularSpan = tracer.startSpan('regular_operation', {}, parentContext);
     regularSpan.setAttributes({ 'database.connection': 'postgres' });
