@@ -35,14 +35,39 @@ trace.set_tracer_provider(provider)
 tracer = trace.get_tracer("my_app")
 ```
 
+### Custom Filtering
+
+You can provide a custom filter function for additional control:
+
+```python
+def my_custom_filter(span):
+    # Keep spans from specific services
+    if span.name.startswith("my_service."):
+        return True
+    # Drop noisy spans even if they match LLM patterns
+    if span.name == "gen_ai.debug":
+        return False
+    # Let default logic decide for everything else
+    return None
+
+llm_processor = LLMSpanProcessor(batch_processor, custom_filter=my_custom_filter)
+```
+
 ## What Gets Filtered
 
 **Kept:**
 - Root spans (preserves trace structure)
+- Spans kept by custom filter (if provided)
 - Spans with names starting with: `gen_ai.`, `braintrust.`, `llm.`, `ai`
 - Spans with attribute names starting with those prefixes
 
 **Dropped:**
+- Spans dropped by custom filter (if provided)
 - Database queries, HTTP requests, cache operations, etc.
+
+**Filter Priority:**
+1. Root spans are always kept
+2. Custom filter decides (if provided): `True` = keep, `False` = drop, `None` = use default logic
+3. Default LLM filtering logic applies
 
 This dramatically reduces telemetry volume while preserving all LLM-related observability.

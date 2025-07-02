@@ -30,6 +30,29 @@ const provider = new TracerProvider();
 provider.addSpanProcessor(llmProcessor);
 ```
 
+### Custom Filtering
+
+You can provide a custom filter function for additional control:
+
+```typescript
+import { LLMSpanProcessor, CustomSpanFilter } from '@braintrust/otel-utils';
+
+const myCustomFilter: CustomSpanFilter = (span) => {
+  // Keep spans from specific services
+  if (span.name.startsWith('my_service.')) {
+    return true;
+  }
+  // Drop noisy spans even if they match LLM patterns
+  if (span.name === 'gen_ai.debug') {
+    return false;
+  }
+  // Let default logic decide for everything else
+  return null;
+};
+
+const llmProcessor = new LLMSpanProcessor(batchProcessor, myCustomFilter);
+```
+
 ## What Gets Filtered
 
 **Kept:**

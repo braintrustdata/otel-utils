@@ -4,6 +4,13 @@ import { SpanProcessor, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base
 const LLM_PREFIXES = ['gen_ai.', 'braintrust.', 'llm.', 'ai'] as const;
 
 /**
+ * Custom filter function type for span filtering.
+ * @param span - The span to evaluate
+ * @returns true to definitely keep, false to definitely drop, null/undefined to not influence the decision
+ */
+export type CustomSpanFilter = (span: ReadableSpan) => boolean | null | undefined;
+
+/**
  * A span processor that filters spans to only export LLM-related telemetry.
  *
  * Only LLM-related spans and root spans will be forwarded to the inner processor.
@@ -18,14 +25,19 @@ const LLM_PREFIXES = ['gen_ai.', 'braintrust.', 'llm.', 'ai'] as const;
  */
 export class LLMSpanProcessor implements SpanProcessor {
   private readonly processor: SpanProcessor;
+  private readonly customFilter?: CustomSpanFilter;
 
   /**
    * Initialize the LLM span processor.
    *
    * @param processor - The wrapped span processor that will receive filtered spans
+   * @param customFilter - Optional function that takes a span and returns:
+   *                      true to definitely keep, false to definitely drop,
+   *                      null/undefined to not influence the decision
    */
-  constructor(processor: SpanProcessor) {
+  constructor(processor: SpanProcessor, customFilter?: CustomSpanFilter) {
     this.processor = processor;
+    this.customFilter = customFilter;
   }
 
   /**
@@ -63,8 +75,9 @@ export class LLMSpanProcessor implements SpanProcessor {
    *
    * Keep spans if:
    * 1. It's a root span (no parent)
-   * 2. Span name starts with 'gen_ai.', 'braintrust.', 'llm.', or 'ai'
-   * 3. Any attribute name starts with those prefixes
+   * 2. Custom filter returns true/false (if provided)
+   * 3. Span name starts with 'gen_ai.', 'braintrust.', 'llm.', or 'ai'
+   * 4. Any attribute name starts with those prefixes
    */
   private shouldKeepLlmSpan(span: ReadableSpan): boolean {
     if (!span) {
@@ -74,6 +87,17 @@ export class LLMSpanProcessor implements SpanProcessor {
     // Braintrust requires root spans, so always keep them
     if (!span.parentSpanId) {
       return true;
+    }
+
+    // Apply custom filter if provided
+    if (this.customFilter) {
+      const customResult = this.customFilter(span);
+      if (customResult === true) {
+        return true;
+      } else if (customResult === false) {
+        return false;
+      }
+      // customResult is null/undefined - continue with default logic
     }
 
     // Check span name
