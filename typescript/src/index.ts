@@ -1,1 +1,1 @@
-export { LLMSpanProcessor } from './llm-span-processor';
+export { LLMSpanProcessor, CustomSpanFilter } from './llm-span-processor';

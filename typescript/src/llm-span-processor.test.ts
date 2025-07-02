@@ -155,4 +155,115 @@ describe('LLMSpanProcessor', () => {
     expect(spanNames).toContain('ai_attr_operation');
     expect(spanNames).not.toContain('regular_operation');
   });
+
+  it('should support custom filter that keeps spans', () => {
+    const customFilter = (span: any) => {
+      if (span.name === 'custom_keep') {
+        return true;
+      }
+      return null; // Don't influence decision
+    };
+
+    // Create new processor with custom filter
+    const customMemoryExporter = new InMemorySpanExporter();
+    const customLLMProcessor = new LLMSpanProcessor(
+      new SimpleSpanProcessor(customMemoryExporter),
+      customFilter
+    );
+    const customProvider = new BasicTracerProvider();
+    customProvider.addSpanProcessor(customLLMProcessor);
+    const customTracer = customProvider.getTracer('custom_test');
+
+    const rootSpan = customTracer.startSpan('root');
+
+    const parentContext = trace.setSpanContext(context.active(), rootSpan.spanContext());
+    const keepSpan = customTracer.startSpan('custom_keep', {}, parentContext);
+    const regularSpan = customTracer.startSpan('regular_operation', {}, parentContext);
+
+    keepSpan.end();
+    regularSpan.end();
+    rootSpan.end();
+
+    const spans = customMemoryExporter.getFinishedSpans();
+    const spanNames = spans.map((s) => s.name);
+
+    expect(spanNames).toContain('root');
+    expect(spanNames).toContain('custom_keep'); // kept by custom filter
+    expect(spanNames).not.toContain('regular_operation'); // dropped by default logic
+
+    customProvider.shutdown();
+  });
+
+  it('should support custom filter that drops spans', () => {
+    const customFilter = (span: any) => {
+      if (span.name === 'gen_ai.drop_this') {
+        return false;
+      }
+      return null; // Don't influence decision
+    };
+
+    // Create new processor with custom filter
+    const customMemoryExporter = new InMemorySpanExporter();
+    const customLLMProcessor = new LLMSpanProcessor(
+      new SimpleSpanProcessor(customMemoryExporter),
+      customFilter
+    );
+    const customProvider = new BasicTracerProvider();
+    customProvider.addSpanProcessor(customLLMProcessor);
+    const customTracer = customProvider.getTracer('custom_test');
+
+    const rootSpan = customTracer.startSpan('root');
+
+    const parentContext = trace.setSpanContext(context.active(), rootSpan.spanContext());
+    const dropSpan = customTracer.startSpan('gen_ai.drop_this', {}, parentContext);
+    const keepSpan = customTracer.startSpan('gen_ai.keep_this', {}, parentContext);
+
+    dropSpan.end();
+    keepSpan.end();
+    rootSpan.end();
+
+    const spans = customMemoryExporter.getFinishedSpans();
+    const spanNames = spans.map((s) => s.name);
+
+    expect(spanNames).toContain('root');
+    expect(spanNames).not.toContain('gen_ai.drop_this'); // dropped by custom filter
+    expect(spanNames).toContain('gen_ai.keep_this'); // kept by default LLM logic
+
+    customProvider.shutdown();
+  });
+
+  it('should support custom filter that defers to default logic', () => {
+    const customFilter = (span: any) => {
+      return null; // Always defer to default logic
+    };
+
+    // Create new processor with custom filter
+    const customMemoryExporter = new InMemorySpanExporter();
+    const customLLMProcessor = new LLMSpanProcessor(
+      new SimpleSpanProcessor(customMemoryExporter),
+      customFilter
+    );
+    const customProvider = new BasicTracerProvider();
+    customProvider.addSpanProcessor(customLLMProcessor);
+    const customTracer = customProvider.getTracer('custom_test');
+
+    const rootSpan = customTracer.startSpan('root');
+
+    const parentContext = trace.setSpanContext(context.active(), rootSpan.spanContext());
+    const llmSpan = customTracer.startSpan('gen_ai.completion', {}, parentContext);
+    const regularSpan = customTracer.startSpan('regular_operation', {}, parentContext);
+
+    llmSpan.end();
+    regularSpan.end();
+    rootSpan.end();
+
+    const spans = customMemoryExporter.getFinishedSpans();
+    const spanNames = spans.map((s) => s.name);
+
+    expect(spanNames).toContain('root');
+    expect(spanNames).toContain('gen_ai.completion'); // kept by default LLM logic
+    expect(spanNames).not.toContain('regular_operation'); // dropped by default logic
+
+    customProvider.shutdown();
+  });
 });

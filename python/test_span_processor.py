@@ -118,6 +118,94 @@ class TestLLMSpanFiltering:
         assert len(spans) == 1
         assert spans[0].name == "root"
 
+    def test_custom_filter_keeps_spans(self):
+        """Custom filter returning True should keep spans."""
+
+        def custom_filter(span):
+            if span.name == "custom_keep":
+                return True
+            return None  # Don't influence decision
+
+        # Create processor with custom filter
+        memory_exporter = InMemorySpanExporter()
+        processor = LLMSpanProcessor(
+            SimpleSpanProcessor(memory_exporter), custom_filter=custom_filter
+        )
+        provider = TracerProvider()
+        provider.add_span_processor(processor)
+        tracer = provider.get_tracer(__name__)
+
+        with tracer.start_as_current_span("root"):
+            with tracer.start_as_current_span("custom_keep"):
+                pass
+            with tracer.start_as_current_span("regular_operation"):
+                pass
+
+        spans = memory_exporter.get_finished_spans()
+        span_names = [span.name for span in spans]
+
+        assert "root" in span_names
+        assert "custom_keep" in span_names  # kept by custom filter
+        assert "regular_operation" not in span_names  # dropped by default logic
+
+    def test_custom_filter_drops_spans(self):
+        """Custom filter returning False should drop spans."""
+
+        def custom_filter(span):
+            if span.name == "gen_ai.drop_this":
+                return False
+            return None  # Don't influence decision
+
+        # Create processor with custom filter
+        memory_exporter = InMemorySpanExporter()
+        processor = LLMSpanProcessor(
+            SimpleSpanProcessor(memory_exporter), custom_filter=custom_filter
+        )
+        provider = TracerProvider()
+        provider.add_span_processor(processor)
+        tracer = provider.get_tracer(__name__)
+
+        with tracer.start_as_current_span("root"):
+            with tracer.start_as_current_span("gen_ai.drop_this"):
+                pass
+            with tracer.start_as_current_span("gen_ai.keep_this"):
+                pass
+
+        spans = memory_exporter.get_finished_spans()
+        span_names = [span.name for span in spans]
+
+        assert "root" in span_names
+        assert "gen_ai.drop_this" not in span_names  # dropped by custom filter
+        assert "gen_ai.keep_this" in span_names  # kept by default LLM logic
+
+    def test_custom_filter_none_uses_default_logic(self):
+        """Custom filter returning None should use default logic."""
+
+        def custom_filter(span):
+            return None  # Always defer to default logic
+
+        # Create processor with custom filter
+        memory_exporter = InMemorySpanExporter()
+        processor = LLMSpanProcessor(
+            SimpleSpanProcessor(memory_exporter), custom_filter=custom_filter
+        )
+        provider = TracerProvider()
+        provider.add_span_processor(processor)
+        tracer = provider.get_tracer(__name__)
+
+        with tracer.start_as_current_span("root"):
+            with tracer.start_as_current_span("gen_ai.completion"):
+                pass
+            with tracer.start_as_current_span("regular_operation"):
+                pass
+
+        spans = memory_exporter.get_finished_spans()
+        span_names = [span.name for span in spans]
+
+        assert "root" in span_names
+        assert "gen_ai.completion" in span_names  # kept by default LLM logic
+        assert "regular_operation" not in span_names  # dropped by default logic
+
     def test_filtering_vs_unfiltered_comparison(self):
         """Compare filtered vs unfiltered exporters to verify filtering works."""
         # Set up two separate exporters and processors
