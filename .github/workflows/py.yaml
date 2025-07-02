@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]  # This runs on pushes/merges to main
+  pull_request:  # This runs on all pull requests
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mise
+        uses: jdx/mise-action@v2
+        with:
+          install: true # install our dependencies
+
+      - name: Lint, format check, and tests
+        run: make ci
