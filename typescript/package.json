@@ -1,0 +1,35 @@
+{
+  "name": "@braintrust/otel-utils",
+  "version": "0.1.0",
+  "description": "OpenTelemetry utilities for filtering spans while preserving LLM-related spans",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write src",
+    "format-check": "prettier --check src",
+    "ci": "npm run format-check && npm run test",
+    "clean": "rm -rf dist node_modules"
+  },
+  "devDependencies": {
+    "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/sdk-trace-base": "^1.18.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "keywords": [
+    "opentelemetry",
+    "tracing",
+    "observability",
+    "llm",
+    "braintrust"
+  ],
+  "author": "Braintrust",
+  "license": "MIT"
+}
