@@ -18,7 +18,7 @@ _.file = ".env"
 [tasks.fmt-check]
 quiet = true
 silent = true
-run = "cd python && make fmt-check"
+run = "make fmt-check"
 
 [hooks]
 postinstall = "mise generate git-pre-commit --write --task=fmt-check"
