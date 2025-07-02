@@ -15,9 +15,7 @@ class TestLLMSpanFiltering:
 
         # Create processor with our filtering logic
         base_processor = SimpleSpanProcessor(self.memory_exporter)
-        self.filtering_processor = LLMSpanProcessor(
-            base_processor, LLMSpanProcessor.should_keep_llm_span
-        )
+        self.filtering_processor = LLMSpanProcessor(base_processor)
 
         self.provider.add_span_processor(self.filtering_processor)
         self.tracer = self.provider.get_tracer("test_tracer")
@@ -131,8 +129,7 @@ class TestLLMSpanFiltering:
 
         # Processor that filters LLM spans
         filtered_processor = LLMSpanProcessor(
-            SimpleSpanProcessor(filtered_spans_exporter),
-            LLMSpanProcessor.should_keep_llm_span,
+            SimpleSpanProcessor(filtered_spans_exporter)
         )
 
         # Set up provider with both processors

@@ -24,7 +24,7 @@ exporter = OTLPSpanExporter(endpoint="https://api.braintrust.dev/otel/v1/traces"
 batch_processor = BatchSpanProcessor(exporter)
 
 # Wrap with LLM filtering
-llm_processor = LLMSpanProcessor(batch_processor, LLMSpanProcessor.should_keep_llm_span)
+llm_processor = LLMSpanProcessor(batch_processor)
 
 # Configure tracing
 provider = TracerProvider()
