@@ -10,10 +10,7 @@ authors = [{name = "Braintrust"}]
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.8"
-dependencies = [
-    "opentelemetry-api",
-    "opentelemetry-sdk",
-]
+dependencies = []
 
 [project.optional-dependencies]
 test = [

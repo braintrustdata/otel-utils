@@ -1,62 +1,62 @@
-from opentelemetry.sdk.trace import Span
-from opentelemetry.sdk.trace.export import SpanProcessor
-
 LLM_PREFIXES = ("gen_ai.", "braintrust.", "llm.", "ai")
 
 
-class FilteringSpanProcessor(SpanProcessor):
+class LLMSpanProcessor:
     """
-    A span processor that filters spans based on a provided filter function.
+    A span processor that filters spans to only export LLM-related telemetry.
 
-    Only spans that pass the filter function will be forwarded to the inner processor.
-    This allows selective export of spans based on custom criteria.
+    Only LLM-related spans and root spans will be forwarded to the inner processor.
+    This dramatically reduces telemetry volume while preserving LLM observability.
+
+    Example:
+        > processor = LLMSpanProcessor(BatchSpanProcessor(OTLPSpanExporter()))
+        > provider = TracerProvider()
+        > provider.add_span_processor(processor)
     """
 
-    def __init__(self, inner_processor: SpanProcessor, filter_fn):
+    def __init__(self, processor):
         """
-        Initialize the filtering span processor.
+        Initialize the LLM span processor.
 
         Args:
-            inner_processor: The wrapped span processor that will receive filtered spans
-            filter_fn: A function that takes a Span and returns True if it should be
-                kept
+            processor: The wrapped span processor that will receive filtered spans
         """
-        self._inner = inner_processor
-        self._filter_fn = filter_fn
+        self._processor = processor
 
-    def on_start(self, span: Span, parent_context=None) -> None:
+    def on_start(self, span, parent_context=None):
         """Forward span start events to the inner processor."""
-        self._inner.on_start(span, parent_context)
+        self._processor.on_start(span, parent_context)
 
-    def on_end(self, span: Span) -> None:
+    def on_end(self, span):
         """Apply filtering logic and conditionally forward span end events."""
-        if self._filter_fn(span):
-            self._inner.on_end(span)
+        if self._should_keep_llm_span(span):
+            self._processor.on_end(span)
 
-    def shutdown(self) -> None:
+    def shutdown(self):
         """Shutdown the inner processor."""
-        self._inner.shutdown()
+        self._processor.shutdown()
 
-    def force_flush(self, timeout_millis: int = 30000) -> bool:
+    def force_flush(self, timeout_millis=30000):
         """Force flush the inner processor."""
-        return self._inner.force_flush(timeout_millis)
+        return self._processor.force_flush(timeout_millis)
 
-    @staticmethod
-    def should_keep_llm_span(span: Span) -> bool:
+    def _should_keep_llm_span(self, span):
         """
         Keep spans if:
         1. It's a root span (no parent)
         2. Span name starts with 'gen_ai.', 'braintrust.', 'llm.', or 'ai'
         3. Any attribute name starts with those prefixes
         """
+        if not span:
+            return False
+
+        # Braintrust requires root spans, so always keep them
         if span.parent is None:
             return True
 
-        # Check span name
         if span.name.startswith(LLM_PREFIXES):
             return True
 
-        # Check attribute names
         if span.attributes:
             for attr_name in span.attributes.keys():
                 if attr_name.startswith(LLM_PREFIXES):

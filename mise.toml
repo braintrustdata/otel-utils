@@ -1,5 +1,8 @@
 # Mise will automatically read and use .tool-versions files as well as this file.
 
+[settings]
+experimental=true
+
 [tools]
 python = '3.13'
 
@@ -10,3 +13,12 @@ _.python.venv = { path = "venv", create = true, uv_create_args = ['--seed']}
 
 # See env.example to configure API keys.
 _.file = ".env"
+
+
+[tasks.fmt-check]
+quiet = true
+silent = true
+run = "make fmt-check"
+
+[hooks]
+postinstall = "mise generate git-pre-commit --write --task=fmt-check"
