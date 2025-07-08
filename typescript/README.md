@@ -18,7 +18,11 @@ import { LLMSpanProcessor } from '@braintrust/otel-utils';
 
 // Set up your exporter and batch processor
 const exporter = new OTLPTraceExporter({
-  endpoint: 'https://api.braintrust.dev/otel/v1/traces',
+  url: 'https://api.braintrust.dev/otel/v1/traces',
+  headers: {
+    Authorization: `Bearer ${process.env.BRAINTRUST_API_KEY}`,
+    'x-bt-parent': `project_id:${process.env.BRAINTRUST_PROJECT_ID}`,
+  },
 });
 const batchProcessor = new BatchSpanProcessor(exporter);
 

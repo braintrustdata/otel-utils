@@ -12,6 +12,7 @@ If you'd like to send only LLM spans to Braintrust, add our `LLMSpanProcessor` t
 send to Braintrust, copy the [span_processor.py](span_processor.py) file to your repo and customize as needed.
 
 ```python
+import os
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -20,7 +21,13 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from span_processor import LLMSpanProcessor
 
 # Set up your exporter and batch processor
-exporter = OTLPSpanExporter(endpoint="https://api.braintrust.dev/otel/v1/traces")
+exporter = OTLPSpanExporter(
+    endpoint="https://api.braintrust.dev/otel/v1/traces",
+    headers={
+        "Authorization": f"Bearer {os.getenv('BRAINTRUST_API_KEY')}",
+        "x-bt-parent": f"project_id:{os.getenv('BRAINTRUST_PROJECT_ID')}",
+    }
+)
 batch_processor = BatchSpanProcessor(exporter)
 
 # Wrap with LLM filtering
